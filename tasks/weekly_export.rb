@@ -10,8 +10,8 @@ export_file = "./../extracts/extract_#{begin_date.strftime('%Y.%m.%d')}-#{end_da
 ok_to_export_record_dump(export_file, dates, conn)
 pcc_prefix = ENV['PCC_FILE_PREFIX']
 non_pcc_prefix = ENV['NON_PCC_FILE_PREFIX']
-pcc_file = "./../extracts/#{pcc_prefix}.#{end_date.strftime('%Y.%m.%d_$H.%M')}.mrc"
-non_pcc_file = "./../extracts/#{non_pcc_prefix}.#{end_date.strftime('%Y.%m.%d_$H.%M')}.mrc"
+pcc_file = "./../extracts/#{pcc_prefix}.#{end_date.strftime('%Y.%m.%d_%H.%M')}.mrc"
+non_pcc_file = "./../extracts/#{non_pcc_prefix}.#{end_date.strftime('%Y.%m.%d_%H.%M')}.mrc"
 pcc_writer = MARC::Writer.new(pcc_file)
 non_pcc_writer = MARC::Writer.new(non_pcc_file)
 pcc_bibs = []
