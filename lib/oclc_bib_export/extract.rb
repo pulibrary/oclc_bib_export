@@ -56,13 +56,4 @@ module OclcBibExport
       ftp.putbinaryfile(file)
     end
   end
-  def clean_record(record)
-    record = MarcCleanup.bad_utf8_fix(record)
-    record = MarcCleanup.leaderfix(record)
-    record = MarcCleanup.extra_space_fix(record)
-    record = MarcCleanup.invalid_xml_fix(record)
-    record = MarcCleanup.composed_chars_normalize(record)
-    record = MarcCleanup.tab_newline_fix(record)
-    record = MarcCleanup.empty_subfield_fix(record)
-  end
 end
