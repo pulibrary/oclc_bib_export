@@ -26,28 +26,31 @@ report_file = "./../extracts/extract_#{begin_date.strftime('%Y.%m.%d')}-#{end_da
 ok_to_export_record_dump(export_file, dates, conn)
 pcc_bibs = []
 non_pcc_bibs = []
-sparse = { description: 'are sparse', records: [] }
-multiple_no_008 = { description: 'have multiple or no 008s', records: [] }
-bad_005 = { description: 'have bad 005s', records: [] }
-bad_006 = { description: 'have bad 006s', records: [] }
-bad_007 = { description: 'have bad 007s', records: [] }
-bad_008 = { description: 'have bad 008s', records: [] }
-fixed_field_char_errors = { description: 'have fixed field character errors', records: [] }
-leader_errors = { description: 'have leader errors', records: [] }
-auth_code_error = { description: 'have 042 auth code errors', records: [] }
-invalid_indicators = { description: 'have invalid indicators', records: [] }
-invalid_subfield_code = { description: 'have invalid subfields', records: [] }
-empty_subfields = { description: 'have empty subfields', records: [] }
-multiple_no_245 = { description: 'have multiple or no 245s', records: [] }
-missing_040c = { description: 'have no 040 $c', records: [] }
-pair_880_errors = { description: 'have 880 pairing errors', records: [] }
-has_130_240 = { description: 'have a 130 and 240', records: [] }
-multiple_1xx = { description: 'have multiple 1xx fields', records: [] }
-repeatable_field_errors = { description: 'have multiple non-repeatable fields', records: [] }
-invalid_tag = { description: 'have invalid field tags', records: [] }
-bad_utf8 = { description: 'have bad UTF-8 bytes', records: [] }
-invalid_xml_chars = { description: 'have invalid XML 1.0 characters', records: [] }
 if File.size?(export_file)
+  output = File.open(report_file, 'w')
+  output.write("bib_id\t")
+  output.write("pcc\t")
+  output.write("sparse\t")
+  output.write("008_count\t")
+  output.write("bad_005\t")
+  output.write("bad_006\t")
+  output.write("bad_007\t")
+  output.write("bad_008\t")
+  output.write("fixed_field_chars\t")
+  output.write("leader_errors\t")
+  output.write("auth_code_error\t")
+  output.write("invalid_indicators\t")
+  output.write("invalid_subfield_code\t")
+  output.write("empty_subfields\t")
+  output.write("245_count\t")
+  output.write("missing_040c\t")
+  output.write("pair_880_errors\t")
+  output.write("130_240\t")
+  output.write("multiple_1xx\t")
+  output.write("repeatable_field_errors\t")
+  output.write("invalid_tag\t")
+  output.write("bad_utf8\t")
+  output.puts('invalid_xml_chars')
   message_body = "See attached log for records exported for OCLC for the date range of #{begin_date.strftime('%Y-%m-%d')} to #{end_date.strftime('%Y-%m-%d')}."
   pcc_writer = MARC::Writer.new(pcc_file)
   non_pcc_writer = MARC::Writer.new(non_pcc_file)
@@ -57,89 +60,66 @@ if File.size?(export_file)
     fixed_errors = fixed_field_check(record)
     variable_errors = variable_field_check(record)
     global_errors = global_field_check(record)
-    sparse[:records] << bib_id if sparse_record?(record)
-    multiple_no_008[:records] << bib_id if fixed_errors[:multiple_no_008]
-    bad_005[:records] << bib_id if fixed_errors[:bad_005]
-    bad_006[:records] << bib_id if fixed_errors[:bad_006]
-    bad_007[:records] << bib_id if fixed_errors[:bad_007]
-    bad_008[:records] << bib_id if fixed_errors[:bad_008]
-    fixed_field_char_errors[:records] << bib_id if fixed_errors[:fixed_field_char_errors]
-    leader_errors[:records] << bib_id if fixed_errors[:leader_errors]
-    auth_code_error[:records] << bib_id if variable_errors[:auth_code_error]
-    invalid_indicators[:records] << bib_id if variable_errors[:invalid_indicators]
-    invalid_subfield_code[:records] << bib_id if variable_errors[:invalid_subfield_code]
-    empty_subfields[:records] << bib_id if variable_errors[:empty_subfields]
-    multiple_no_245[:records] << bib_id if variable_errors[:multiple_no_245]
-    missing_040c[:records] << bib_id if variable_errors[:missing_040c]
-    pair_880_errors[:records] << bib_id if variable_errors[:pair_880_errors]
-    has_130_240[:records] << bib_id if variable_errors[:has_130_240]
-    multiple_1xx[:records] << bib_id if variable_errors[:multiple_1xx]
-    repeatable_field_errors[:records] << bib_id if global_errors[:repeatable_field_errors]
-    invalid_tag[:records] << bib_id if global_errors[:invalid_tag]
-    bad_utf8[:records] << bib_id if global_errors[:bad_utf8]
-    invalid_xml_chars[:records] << bib_id if global_errors[:invalid_xml_chars]
+    sparse = sparse_record?(record)
+    multiple_no_008 = fixed_errors[:multiple_no_008]
+    bad_005 = fixed_errors[:bad_005]
+    bad_006 = fixed_errors[:bad_006]
+    bad_007 = fixed_errors[:bad_007]
+    bad_008 = fixed_errors[:bad_008]
+    fixed_field_char_errors = fixed_errors[:fixed_field_char_errors]
+    leader_errors = fixed_errors[:leader_errors]
+    auth_code_error = variable_errors[:auth_code_error]
+    invalid_indicators = variable_errors[:invalid_indicators]
+    invalid_subfield_code = variable_errors[:invalid_subfield_code]
+    empty_subfields = variable_errors[:empty_subfields]
+    multiple_no_245 = variable_errors[:multiple_no_245]
+    missing_040c = variable_errors[:missing_040c]
+    pair_880_errors = variable_errors[:pair_880_errors]
+    has_130_240 = variable_errors[:has_130_240]
+    multiple_1xx = variable_errors[:multiple_1xx]
+    repeatable_field_errors = global_errors[:repeatable_field_errors]
+    invalid_tag = global_errors[:invalid_tag]
+    bad_utf8 = global_errors[:bad_utf8]
+    invalid_xml_chars = global_errors[:invalid_xml_chars]
     record = clean_record(record)
     if pcc_record?(record)
       pcc_writer.write(record)
       pcc_bibs << bib_id
+      pcc = true
     else
       non_pcc_writer.write(record)
       non_pcc_bibs << bib_id
+      pcc = false
     end
+    output.write("#{bib_id}\t")
+    output.write("#{pcc}\t")
+    output.write("#{sparse}\t")
+    output.write("#{multiple_no_008}\t")
+    output.write("#{bad_005}\t")
+    output.write("#{bad_006}\t")
+    output.write("#{bad_007}\t")
+    output.write("#{bad_008}\t")
+    output.write("#{fixed_field_char_errors}\t")
+    output.write("#{leader_errors}\t")
+    output.write("#{auth_code_error}\t")
+    output.write("#{invalid_indicators}\t")
+    output.write("#{invalid_subfield_code}\t")
+    output.write("#{empty_subfields}\t")
+    output.write("#{multiple_no_245}\t")
+    output.write("#{missing_040c}\t")
+    output.write("#{pair_880_errors}\t")
+    output.write("#{has_130_240}\t")
+    output.write("#{multiple_1xx}\t")
+    output.write("#{repeatable_field_errors}\t")
+    output.write("#{invalid_tag}\t")
+    output.write("#{bad_utf8}\t")
+    output.puts(invalid_xml_chars)
   end
   pcc_writer.close
+  non_pcc_writer.close
   File.unlink(pcc_file) unless File.size?(pcc_file)
   File.unlink(non_pcc_file) unless File.size?(non_pcc_file)
-  non_pcc_writer.close
-  File.open(report_file, 'w') do |output|
-    output.puts('PCC records exported')
-    unless pcc_bibs.empty?
-      pcc_bibs.each do |id|
-        output.puts(id)
-      end
-    end
-    output.puts("Total number of PCC records exported: #{pcc_bibs.size}")
-    output.puts("\n")
-    output.puts('non-PCC records exported')
-    unless non_pcc_bibs.empty?
-      non_pcc_bibs.each do |id|
-        output.puts(id)
-      end
-    end
-    output.puts("Total number of non-PCC records exported: #{non_pcc_bibs.size}")
-    output.puts("\n\n")
-    [
-      sparse,
-      multiple_no_008,
-      bad_005,
-      bad_006,
-      bad_007,
-      bad_008,
-      fixed_field_char_errors,
-      leader_errors,
-      auth_code_error,
-      invalid_indicators,
-      invalid_subfield_code,
-      empty_subfields,
-      multiple_no_245,
-      missing_040c,
-      pair_880_errors,
-      has_130_240,
-      multiple_1xx,
-      repeatable_field_errors,
-      invalid_tag,
-      bad_utf8,
-      invalid_xml_chars,
-    ].each do |hash|
-      next if hash[:records].empty?
-      output.puts("Records that #{hash[:description]}")
-      hash[:records].each do |id|
-        output.puts(id)
-      end
-      output.puts("Total number of errored records: #{hash[:records].size}")
-      output.puts("\n")
-    end
-  end
+  output.close
   if File.size?(pcc_file)
     send_oclc_file(pcc_file)
   end
