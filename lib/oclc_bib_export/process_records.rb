@@ -45,4 +45,5 @@ def clean_record(record)
   record = tab_newline_fix(record)
   record = empty_subfield_fix(record)
   record = fix_008(record)
+  record = field_delete(%w[900 901 902 903 904])
 end
